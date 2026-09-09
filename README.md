@@ -1,43 +1,53 @@
-# 🔐 Panduan Hardening VPS Ubuntu
+# 🛡️ Panduan Hardening VPS
 
-Versi **terkoreksi & terpadu** dari panduan hardening VPS — disusun ulang dari sumber publik (1VPS.com, RunCloud, dokumentasi resmi Ubuntu), duplikasi dihilangkan, dan beberapa kesalahan umum yang sering ditemukan di artikel sejenis diperbaiki.
+Kumpulan panduan hardening VPS yang **terkoreksi & terpadu** — disusun ulang dari sumber publik dan dokumentasi resmi (1VPS.com, RunCloud, Microsoft Learn, CIS Benchmarks), dengan duplikasi dihilangkan dan kesalahan umum diperbaiki.
 
-## 📚 Isi Panduan
+## 📚 Daftar Panduan per OS
 
-1. Update sistem & auto security update (`unattended-upgrades`)
-2. User non-root untuk aktivitas harian
-3. 🔑 Penguncian SSH — key Ed25519, urutan aman anti self-lockout, drop-in config
-4. Firewall UFW
-5. Fail2ban (anti brute-force)
-6. Audit & minimalisasi service
-7. AIDE (deteksi perubahan file sistem)
-8. Kernel hardening via sysctl (IPv4 + IPv6, satu file)
-9. Logwatch — laporan harian versi cron yang benar
-10. Audit user & permission
-11. MAC: AppArmor / SELinux
-12. 2FA untuk SSH (opsional)
-13. Backup off-server
-14. Monitoring & tanda-tanda kompromi
-15. Langkah lanjutan + checklist implementasi akhir
+| Panduan | Target | Status |
+|---|---|---|
+| [Panduan-Hardening-VPS-Ubuntu.md](Panduan-Hardening-VPS-Ubuntu.md) | Ubuntu/Debian (22.04/24.04 LTS) | ✅ Selesai |
+| [Panduan-Hardening-VPS-Windows.md](Panduan-Hardening-VPS-Windows.md) | Windows Server 2019/2022/2025 | ✅ Selesai |
+| _(panduan OS lain)_ | rencana: Rocky/Alma, FreeBSD, dll. | ⏳ Menyusul |
 
-## ✏️ Yang Dikoreksi dari Versi Asli
+> Konvensi penamaan: `Panduan-Hardening-VPS-<OS>.md` — setiap panduan berdiri sendiri (self-contained), jadi bisa dibaca tanpa panduan lain.
 
-- **Bug cron `/etc/cron.d/`** — baris tanpa kolom user tidak akan pernah jalan oleh cron; diganti cron bawaan paket logwatch
-- **Kontradiksi hapus postfix vs laporan email** logwatch/unattended-upgrades — kini ada keputusan eksplisit
-- **Urutan restart SSH berisiko self-lockout** — key diverifikasi dulu, `sshd -t` sebelum restart, tes dari terminal kedua
-- **`sysctl -p` tidak membaca `/etc/sysctl.d/`** — diganti `sudo sysctl --system`
-- **Duplikasi langkah antar-sumber dihilangkan**, port SSH disatukan lewat variabel di awal dokumen
+## 🧭 Prinsip yang Berlaku di Semua OS
+
+Detail ada di tiap panduan, tapi semua mengikuti prinsip yang sama:
+
+1. **Patch rutin & otomatis** — update keamanan tidak boleh menunggu manusia ingat.
+2. **Jangan pakai akun superuser untuk aktivitas harian** — root/Administrator bawaan dimatikan, pakai akun khusus + privilege yang dibatasi.
+3. **Kunci akses jarak jauh** — autentikasi kuat (SSH key / NLA), port default diganti, proteksi brute-force (fail2ban / account lockout), firewall membatasi sumber IP.
+4. **Minimize attack surface** — service, protokol, dan port yang tidak dipakai dimatikan (SMBv1, Print Spooler, cups, avahi, dll.).
+5. **Firewall default-deny** — blok semua koneksi masuk, buka hanya yang dibutuhkan.
+6. **Deteksi dini** — audit log diaktifkan, laporan berkala, file integrity monitoring (AIDE) / event log.
+7. **Backup off-server** — incremental + pernah di-restore-test.
+8. **Uji di staging dulu** — terutama untuk langkah yang bisa memblokir aplikasi sah (MAC/AppLocker, enforce policy).
+9. **Selalu siapkan jaring pengaman** — console VPS dari panel provider, kalau terjadi self-lockout.
+10. **Isi bebas data internal** — semua panduan memakai placeholder (`SSH_PORT`, `IP_ANDALAN`, `ADMIN_USER`, dll.), aman untuk repositori publik.
+
+## ✏️ Filosofi Koreksi di Panduan Ini
+
+Panduan hardening yang beredar di internet sering punya masalah yang sama — versi di repo ini sudah diperbaiki:
+
+- **Urutan langkah anti self-lockout** — key/akun baru diverifikasi dulu, baru akses lama dimatikan.
+- **Bug cron `/etc/cron.d/`** (baris tanpa kolom user tidak pernah jalan oleh cron).
+- **Kontradiksi antar-langkah** (misal: menghapus mail server tapi tetap mengharapkan laporan email).
+- **Perintah yang diam-diam tidak bekerja** (`sysctl -p` tidak membaca `/etc/sysctl.d/`).
+- **Duplikasi antar-sumber** dihilangkan, variabel disatukan di awal dokumen.
 
 ## 🚀 Cara Pakai
 
-1. Baca seluruh panduan sebelum eksekusi.
-2. Ganti nilai variabel di bagian atas (`SSH_PORT`, `IP_ANDALAN`, `EMAIL_ADMIN`, dll.) sesuai kebutuhan.
-3. Kerjakan berurutan — terutama bagian SSH: **pasang & verifikasi key SEBELUM mematikan autentikasi password**.
-4. Selalu siapkan akses **console VPS dari panel provider** sebagai jaring pengaman.
+1. Pilih panduan sesuai OS server kamu (lihat tabel di atas).
+2. Baca seluruh panduan sebelum eksekusi.
+3. Ganti nilai placeholder di bagian atas sesuai kebutuhan.
+4. Kerjakan berurutan — jangan lompat-lompat, terutama bagian akses jarak jauh.
+5. Terapkan di staging dulu untuk lingkungan produksi.
 
 ## ⚠️ Disclaimer
 
-Panduan ini ditujukan untuk **Ubuntu/Debian (22.04/24.04 LTS)** — sesuaikan perintah untuk distribusi lain. Terapkan di staging dulu untuk lingkungan produksi. Penulis tidak bertanggung jawab atas lockout atau kerusakan akibat penerapan tanpa pemahaman.
+Panduan-panduan ini ditujukan untuk versi OS yang tercantum di masing-masing judul — sesuaikan perintah untuk versi/distribusi lain. Penulis tidak bertanggung jawab atas lockout atau kerusakan akibat penerapan tanpa pemahaman.
 
 ## 📄 Lisensi
 
