@@ -51,7 +51,7 @@ Config tambahan (opsional) di `/etc/apt/apt.conf.d/50unattended-upgrades`:
 # Unattended-Upgrade::Automatic-Reboot-Time "02:00";
 ```
 
-> ⚠️ **Catatan produksi**: auto-reboot pukul 02:00 bisa mematikan service (misal `sales-track-go`) tanpa jaminan nyala lagi. Pastikan semua service penting punya `Restart=always` di unit systemd-nya, atau biarkan `Automatic-Reboot` false dan reboot manual terjadwal.
+> ⚠️ **Catatan produksi**: auto-reboot pukul 02:00 bisa mematikan service produksi (misal aplikasi kamu) tanpa jaminan nyala lagi. Pastikan semua service penting punya `Restart=always` di unit systemd-nya, atau biarkan `Automatic-Reboot` false dan reboot manual terjadwal.
 >
 > 📧 Notifikasi email dari unattended-upgrades **butuh MTA lokal** — lihat Langkah 9 sebelum memutuskan menghapus postfix.
 
